@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict Optimal Price</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+        }
+
+        .prediction-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 300px;
+            width: 100%;
+        }
+
+        label {
+            font-size: 1em;
+            color: #555;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="submit"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        h2 {
+            color: #007bff;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Predict Optimal Price</h1>
+    </header>
+    <main>
+        <div class="prediction-box">
+            <form action="{{ url_for('predict') }}" method="post">
+                <label for="original_price">Original Price:</label>
+                <input type="text" id="original_price" name="original_price" required>
+
+                <label for="sales_volume">Sales Volume:</label>
+                <input type="text" id="sales_volume" name="sales_volume" required>
+
+                <label for="inventory_level">Inventory Level:</label>
+                <input type="text" id="inventory_level" name="inventory_level" required>
+
+                <label for="discount_last_week">Discount Last Week:</label>
+                <input type="text" id="discount_last_week" name="discount_last_week" required>
+
+                <label for="day_of_week">Day of Week:</label>
+                <input type="text" id="day_of_week" name="day_of_week" required>
+
+                <label for="month">Month:</label>
+                <input type="text" id="month" name="month" required>
+
+                <label for="lag_sales">Lag Sales:</label>
+                <input type="text" id="lag_sales" name="lag_sales" required>
+
+                <input type="submit" value="Predict">
+            </form>
+
+            {% if predicted_price is not none %}
+                <h2>Predicted Optimal Price: ${{ predicted_price }}</h2>
+            {% endif %}
+        </div>
+    </main>
+</body>
+
+</html>

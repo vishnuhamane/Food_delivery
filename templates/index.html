@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Delivery App</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #ff5e62, #ff9966);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .food-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .food-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 280px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .food-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .food-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .food-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .food-info h2 {
+            margin: 0 0 10px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .food-info p {
+            margin: 5px 0;
+            font-size: 1em;
+            color: #555;
+        }
+
+        .discount {
+            color: #ff5e62;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .discounted-price {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.3em;
+        }
+
+        .rating {
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #ffc107;
+        }
+
+        .chat-bot-icon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #007bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .chat-bot-icon:hover {
+            background: #0056b3;
+            transform: scale(1.1);
+        }
+
+        .chat-bot-icon img {
+            width: 60%;
+            height: 60%;
+            border-radius: 50%;
+        }
+
+        .chat-bot-popup {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 320px;
+            height: 450px;
+            display: none;
+            z-index: 1000;
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-bot-popup iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Food Delivery</h1>
+    </header>
+    <main>
+        <div class="food-items">
+            {% for item in food_items %}
+                <div class="food-item" data-original-price="{{ item['original_price'] }}">
+                    <img src="{{ url_for('static', filename='images/' + item['image']) }}" alt="{{ item['name'] }}">
+                    <div class="food-info">
+                        <h2>{{ item['name'] }}</h2>
+                        <p>Original Price: ₹<span class="original-price">{{ item['original_price'] }}</span></p>
+                        <p>Discount: <span class="discount">0%</span></p>
+                        <p>Discounted Price: ₹<span class="discounted-price">{{ item['original_price'] }}</span></p>
+                        <div class="rating">
+                            {% for _ in range(item['rating']|int) %}
+                                ⭐
+                            {% endfor %}
+                            {% if item['rating'] % 1 != 0 %}
+                                <span style="font-size: 20px; color: #ccc;">⭐</span>
+                            {% endif %}
+                            <span class="rating-count"></span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+    <div class="chat-bot-icon" id="chatBotIcon">
+        <img src="{{ url_for('static', filename='images/Help.png') }}" alt="Help">
+    </div>
+    <div class="chat-bot-popup" id="chatBotPopup">
+        <iframe src="https://console.dialogflow.com/api-client/demo/embedded/f59cd00d-cc0a-4c2f-8daa-06b8c14fd6c8" allow="microphone;"></iframe>
+    </div>
+
+    <script>
+        let ratingCount = 1440;
+
+        function updateRatingCount() {
+            const foodItems = document.querySelectorAll('.food-item');
+            foodItems.forEach(item => {
+                const ratingCountElement = item.querySelector('.rating-count');
+                if (ratingCountElement) {
+                    ratingCountElement.textContent = `(${ratingCount})`;
+                }
+            });
+
+            ratingCount++;
+            if (ratingCount > 12000) {
+                ratingCount = 1440;
+            }
+        }
+
+        function updateDiscounts() {
+            const foodItems = document.querySelectorAll('.food-item');
+            foodItems.forEach(item => {
+                const originalPrice = parseFloat(item.getAttribute('data-original-price'));
+                const discountPercent = Math.floor(Math.random() * 21) + 5; // Random discount between 5% and 25%
+                const discountValue = originalPrice * (discountPercent / 100);
+                const discountedPrice = originalPrice - discountValue;
+
+                item.querySelector('.discount').textContent = discountPercent + '%';
+                item.querySelector('.discounted-price').textContent = '₹' + discountedPrice.toFixed(2);
+            });
+        }
+
+        // Initial update
+        updateDiscounts();
+        updateRatingCount();
+
+        // Update every 10 seconds for discounts and every minute for ratings
+        setInterval(updateDiscounts, 10000);
+        setInterval(updateRatingCount, 60000);
+
+        document.getElementById('chatBotIcon').addEventListener('click', function() {
+            var popup = document.getElementById('chatBotPopup');
+            if (popup.style.display === 'none' || popup.style.display === '') {
+                popup.style.display = 'block';
+            } else {
+                popup.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
